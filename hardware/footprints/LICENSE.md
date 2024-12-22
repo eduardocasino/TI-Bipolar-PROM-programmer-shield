@@ -1,0 +1,1 @@
+* 3M Textool ZIF socket footprint derived from [this one at SnapEda](https://www.snapeda.com/parts/220-3342-00-0602J/Hartmann+Electronic/view-part/?ref=snap) under [Creative Commons CC-BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/) with the [Design Exception 1.0](https://www.snapeda.com/about/FAQ/#designexception)
