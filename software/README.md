@@ -163,7 +163,7 @@ Writing
 Success.
 ```
 
-Command `-s` works exactly the same as `-w`, but without programming to the chip. It is strongly suggested to execute first a simulation as it helps to catch errors beforehand:
+Command `-s` works exactly the same as `-w`, but without burning the chip. It is strongly suggested to execute first a simulation as it helps to catch errors beforehand:
 
 ```bash
 $ ./prom /dev/ttyUSB0 -s -f bin -i test2.bin
