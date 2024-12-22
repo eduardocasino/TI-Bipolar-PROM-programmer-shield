@@ -4,15 +4,15 @@ Copyright (C) 2024 Eduardo Casino (https://github.com/eduardocasino) under the M
 
 ## Build instructions
 
-## Notice
+### Notice
 
 I've only built it on a Debian Linux and on WSL with Ubuntu. I can't give support for other systems, sorry.
 
-## Prerequisites
+### Prerequisites
 
 Any modern Linux distribution (tested on `Debian 12.6` and `Ubuntu 24.04`) with the GCC toolchain, `binutils` and `make`.
 
-## Build
+### Build
 
 Just go to the `software` directory and build it with `make`:
 ```console
