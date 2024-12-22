@@ -40,6 +40,8 @@
 #define REC_BUF_SIZE    100
 #define RW_BUF_SIZE     4096
 
+typedef void (*cmdset_fn_t)( char command, char *cmd_buf, uint8_t chip, uint16_t address, uint8_t *data );
+
 static const uint16_t chip_sizes[] =
 {
     256, 512
@@ -195,8 +197,19 @@ status_t command_read(
     }
 }
 
+static void command_set_read( char command, char *cmd_buf, uint8_t chip, uint16_t address, uint8_t *unused )
+{
+    sprintf( cmd_buf, "%c %x %x\n", command, chip, address );
+}
+
+static void command_set_write( char command, char *cmd_buf, uint8_t chip, uint16_t address, uint8_t *data )
+{
+    sprintf( cmd_buf, "%c %x %x %x\n", command, chip, address, *data );
+}
+
 static status_t command_execute(
     char command,
+    cmdset_fn_t command_fn,
     const char *message,
     int fd,
     char *device,
@@ -252,7 +265,7 @@ static status_t command_execute(
             }
 
             putc( '.', stderr );
-            sprintf( rec_buf, "%c %x %x %x\n", command, chip, loc, rw_buf[loc] );
+            command_fn( command, rec_buf, chip, loc, &rw_buf[loc] );
 
             if ( FAILURE == serial_write( fd, device, rec_buf, strlen( rec_buf ) ) )
             {
@@ -339,7 +352,7 @@ status_t command_write(
     const format_st_t *format )
 {
     fputs( "Writing\n", stderr );
-    return command_execute( 'w', "writing to", fd, device, chip, address, data, ifile, ofile, format );
+    return command_execute( 'w', command_set_write, "writing to", fd, device, chip, address, data, ifile, ofile, format );
 }
 
 status_t command_simul(
@@ -353,7 +366,7 @@ status_t command_simul(
     const format_st_t *format )
 {
     fputs( "Performing a write simulation\n", stderr );
-    return command_execute( 's', "writing (simulated) to", fd, device, chip, address, data, ifile, ofile, format );
+    return command_execute( 's', command_set_write, "writing (simulated) to", fd, device, chip, address, data, ifile, ofile, format );
 }
 
 status_t command_verify(
@@ -367,7 +380,7 @@ status_t command_verify(
     const format_st_t *format )
 {
     fputs( "Verifying\n", stderr );
-    return command_execute( 'r', "verifying", fd, device, chip, address, data, ifile, ofile, format );
+    return command_execute( 'r', command_set_read, "verifying", fd, device, chip, address, data, ifile, ofile, format );
 }
 
 status_t command_init( int fd, char *device )
