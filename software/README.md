@@ -144,6 +144,8 @@ $ cat test.hex
 ```bash
 $ ./prom /dev/ttyUSB0 -w 0x60 -d 1
 Connected to programmer, firmware V01.00.00.
+WARNING: Programming is irreversible. Are you sure? Type YES to confirm
+YES
 Writing
 .
 Success.
@@ -157,6 +159,8 @@ Success.
 ```bash
 $ ./prom /dev/ttyUSB0 -w -i test.bin
 Connected to programmer, firmware V01.00.00.
+WARNING: Programming is irreversible. Are you sure? Type YES to confirm
+YES
 Writing
 .........................................................................
 .......................

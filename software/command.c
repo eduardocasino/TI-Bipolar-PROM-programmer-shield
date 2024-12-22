@@ -351,8 +351,17 @@ status_t command_write(
     char *ofile,
     const format_st_t *format )
 {
-    fputs( "Writing\n", stderr );
-    return command_execute( 'w', command_set_write, "writing to", fd, device, chip, address, data, ifile, ofile, format );
+    fputs( "WARNING: Programming is irreversible. Are you sure? Type YES to confirm\n", stderr );
+    if ( NULL != fgets( rw_buf, sizeof( rw_buf ), stdin ) )
+    {
+        if ( ! strcmp( "YES\n", rw_buf ) )
+        {
+            fputs( "Writing\n", stderr );
+            return command_execute( 'w', command_set_write, "writing to", fd, device, chip, address, data, ifile, ofile, format );
+        }
+    }
+    fputs( "Aborted by user.\n", stderr );
+    return FAILURE;
 }
 
 status_t command_simul(
