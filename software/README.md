@@ -80,12 +80,6 @@ Chip is not blank. Found non-zero data at address 0x0.
 ```bash
 $ ./prom /dev/ttyUSB0 -r
 Connected to programmer, firmware V01.00.00.
-Reading
-.........................................................................
-.........................................................................
-.........................................................................
-.....................................
-Success.
 000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 010  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 020  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
@@ -110,9 +104,6 @@ If an address is provided, the content of that cell is printed to the screen:
 ```bash
 $ ./prom /dev/ttyUSB0 -r 0xec
 Connected to programmer, firmware V01.00.00.
-Reading
-.
-Success.
 0EC  ff                                                |.               |
 ```
 
@@ -121,12 +112,7 @@ Finally, it is also possible to make a dump in binary or Intel HEX format with t
 ```bash
 $ ./prom /dev/ttyUSB0 -r -f ihex -o test.hex
 Connected to programmer, firmware V01.00.00.
-Reading
-.........................................................................
-.........................................................................
-.........................................................................
-.....................................
-Success.
+Writing contents to file `test.hex` in ihex format.
 
 $ cat test.hex
 :20000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00
