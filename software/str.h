@@ -1,6 +1,8 @@
 /*
  * prom - A command-line utility to interface with the poor's man
  *        National/TI Bipolar PROM Programmer
+ *  
+ * Binary string support
  * 
  * (C) 2024 Eduardo Casino
  *
@@ -24,55 +26,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
-#include <termios.h>
+#ifndef SRT_H
+#define STR_H
+
 #include <stdint.h>
-#include <stdbool.h>
+#include <stddef.h>
 
 #include "globals.h"
-#include "options.h"
-#include "serial.h"
-#include "files.h"
-#include "ihex.h"
-#include "binfile.h"
-#include "command.h"
 
-#define RETRIES 1
+status_t str_process( const char *str, uint8_t *buffer, size_t size, uint16_t *len );
 
-static status_t cleanup( int fd, status_t status )
-{
-    if ( fd != -1 )
-    {
-        serial_close( fd );
-    }
-
-    return status;
-}
-
-int main( int argc, char **argv )
-{
-    options_t options;
-    int fd = -1;
-    status_t ret;
-
-    ret = get_options( &options, argc, argv );
-
-    if ( ret == SUCCESS ) ret = serial_init( &fd, options.device );
-
-    if ( ret == SUCCESS ) ret = command_init( fd, options.device );
-
-    if ( ret == SUCCESS ) ret = options.command->function(
-                                        fd,
-                                        options.device,
-                                        options.chip,
-                                        options.flags.address ? options.address : 0xFFFF,
-                                        options.data,
-                                        options.ifile,
-                                        options.ofile,
-                                        options.format );
-
-    return cleanup( fd, ret );
-
-}
+#endif

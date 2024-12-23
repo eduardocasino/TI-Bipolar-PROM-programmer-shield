@@ -35,6 +35,7 @@
 
 #include "globals.h"
 #include "files.h"
+#include "scan.h"
 
 #define LINE_BUF_LEN 1024
 #define INTEL_WRITE_BYTES_PER_LINE 32
@@ -96,34 +97,6 @@ static int get_hexnum( int len, const char *s )
     }
 
     return result;
-}
-
-int get_hexbyte( const char *s, uint8_t *byte )
-{
-    int result = get_hexnum( UINT8, s );
-
-    if ( result < 0 )
-    {
-        return EINVAL;
-    }
-
-    *byte = (uint8_t) result;
-
-    return 0;
-}
-
-int get_hexword( const char *s, uint16_t *word )
-{
-    int result = get_hexnum( UINT16, s );
-
-    if ( result < 0 )
-    {
-        return EINVAL;
-    }
-
-    *word = (uint16_t) result;
-
-    return 0;
 }
 
 static status_t get_byte( char *buffer, int *index, uint8_t *value )

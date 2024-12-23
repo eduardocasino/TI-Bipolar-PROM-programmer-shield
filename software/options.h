@@ -49,13 +49,12 @@ typedef struct {
     struct {
         bool chip;
         bool address;
-        bool value;
     } flags;
     uint8_t chip;
     const command_t *command;
     const format_st_t *format;
     uint16_t address;
-    uint8_t value;
+    uint8_t *data;
     char *device;
     char *ifile;
     char *ofile;

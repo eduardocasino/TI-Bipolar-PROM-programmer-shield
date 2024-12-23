@@ -27,7 +27,8 @@
 CC = gcc
 LDFLAGS =
 TARGET = prom
-OBJ = prom.o options.o serial.o binfile.o ihex.o command.o files.o hexdump.o
+OBJ = prom.o options.o serial.o binfile.o ihex.o command.o \
+	  files.o hexdump.o scan.o str.o
 
 $(TARGET): $(OBJ)
 	$(CC) -o $@ $^ $(LDFLAGS)
@@ -37,14 +38,16 @@ clean:
 
 prom.o: globals.h options.h binfile.h ihex.h files.h command.h serial.h
 
-options.o: globals.h options.h binfile.h ihex.h files.h command.h
+options.o: globals.h options.h binfile.h ihex.h files.h command.h scan.h str.h
 
 serial.o: globals.h
 
 binfile.o: globals.h files.h
 
-ihex.o: globals.h files.h
+ihex.o: globals.h files.h scan.h
 
 command.o: globals.h files.h hexdump.h serial.h
 
 files.o: globals.h files.h
+
+str.o: globals.h scan.h

@@ -1,6 +1,8 @@
 /*
  * prom - A command-line utility to interface with the poor's man
  *        National/TI Bipolar PROM Programmer
+ *  
+ * Scanning support functions
  * 
  * (C) 2024 Eduardo Casino
  *
@@ -24,55 +26,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
-#include <termios.h>
+#ifndef SCAN_H
+#define SCAN_H
+
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "globals.h"
-#include "options.h"
-#include "serial.h"
-#include "files.h"
-#include "ihex.h"
-#include "binfile.h"
-#include "command.h"
+int get_hexbyte( const char *s, uint8_t *byte );
+int get_hexword( const char *s, uint16_t *word );
+int get_octbyte( const char *s, uint8_t *byte );
+int get_uint8( const char *string, uint8_t *value );
+int get_uint16( const char *string, uint16_t *value );
 
-#define RETRIES 1
-
-static status_t cleanup( int fd, status_t status )
-{
-    if ( fd != -1 )
-    {
-        serial_close( fd );
-    }
-
-    return status;
-}
-
-int main( int argc, char **argv )
-{
-    options_t options;
-    int fd = -1;
-    status_t ret;
-
-    ret = get_options( &options, argc, argv );
-
-    if ( ret == SUCCESS ) ret = serial_init( &fd, options.device );
-
-    if ( ret == SUCCESS ) ret = command_init( fd, options.device );
-
-    if ( ret == SUCCESS ) ret = options.command->function(
-                                        fd,
-                                        options.device,
-                                        options.chip,
-                                        options.flags.address ? options.address : 0xFFFF,
-                                        options.data,
-                                        options.ifile,
-                                        options.ofile,
-                                        options.format );
-
-    return cleanup( fd, ret );
-
-}
+#endif

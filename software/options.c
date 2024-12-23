@@ -43,6 +43,8 @@
 #include "ihex.h"
 #include "command.h"
 #include "files.h"
+#include "scan.h"
+#include "str.h"
 
 static const format_st_t formats[] = {
     { "bin",  BIN,  bin_read,  bin_write },
@@ -58,40 +60,6 @@ static const command_t commands[] = {
     { 'v', "verify",     command_verify },
     { 0 }
 };
-
-static int get_uint16( char *optarg, uint16_t *value )
-{
-    char *endc;
-
-    uint64_t number = strtoul( optarg, &endc, 0 );
-
-    if ( !( isblank( *++endc ) || *endc  ) || number > 0xffff )
-    {
-        return EINVAL;
-    }
-
-    *value = (uint16_t) number;
-
-    return 0;
-}
-
-static int get_uint8( char *optarg, uint8_t *value )
-{
-    uint16_t number;
-
-    int ret = get_uint16( optarg, &number );
-
-    if ( 0 == ret )
-    {
-        if ( number > 0xff )
-        {
-            ret = EINVAL;
-        }
-        *value = (uint8_t) number;
-    }
-
-    return ret;
-}
 
 static const command_t *get_command( char command )
 {
@@ -111,7 +79,7 @@ static status_t usage( char *myname, status_t status )
     fprintf( stderr, "\nUsage: %s [-h]", myname );
     fprintf( stderr, "\n       %s DEVICE [-c NUM] -b", myname );
     fprintf( stderr, "\n       %s DEVICE [-c NUM] -r [ADDRESS | -o FILE [-f FORMAT]]", myname );
-    fprintf( stderr, "\n       %s DEVICE [-c NUM] {-w|-s|-v} {ADDRESS -d BYTE | -i FILE [-f FORMAT]}\n\n", myname );
+    fprintf( stderr, "\n       %s DEVICE [-c NUM] {-w|-s|-v} {ADDRESS -d STRING | -i FILE [-f FORMAT]}\n\n", myname );
 
     fputs( "Arguments:\n", stderr );
     fputs( "    DEVICE                  Serial device.\n\n", stderr );
@@ -131,7 +99,8 @@ static status_t usage( char *myname, status_t status )
     fputs( "    -s[imulate] [ADDRESS]   Program simulation. Will success of fail as the write\n", stderr );
     fputs( "                            command, but without actually burning the chip.\n", stderr );
     fputs( "    -v[erify]   [ADDRESS]   Verify data. Same options as for -write|-simulate.\n", stderr );
-    fputs( "    -d[ata]     BYTE        Byte to program, simulate or verify.\n", stderr );
+    fputs( "    -d[ata]     STRING      Binary string to program, simulate or verify. can\n", stderr );
+    fputs( "                            contain hex and oct escaped binary chars.\n", stderr );
     fputs( "    -i[nput]    FILE        File to read the data from.\n", stderr );
     fputs( "    -o[utput]   FILE        File to save the data to.\n", stderr );
     fputs( "    -f[ormat]   {bin,ihex}  File format. Defaults to bin.\n\n", stderr );
@@ -240,17 +209,12 @@ status_t get_options( options_t *options, int argc, char **argv )
                 break;
 
             case 'd':
-                if ( options->flags.value++ )
+                if ( options->data )
                 {
                     return duplicate( myname, opt );
                 }
 
-                if ( EINVAL == get_uint8( optarg, &options->value ) )
-                {
-                    fprintf( stderr, "Error: Invalid data value: %s\n", optarg );
-                    return usage( myname, FAILURE );
-                } 
-
+                options->data = optarg;
                 break;
             
             case 'i':
@@ -323,7 +287,7 @@ status_t get_options( options_t *options, int argc, char **argv )
         return usage( myname, FAILURE );
     }
 
-    if ( options->flags.address && ! options->flags.value && ! (options->command->command == 'r') )
+    if ( options->flags.address && ! options->data && ! (options->command->command == 'r') )
     {
         fprintf( stderr, "%s: Missing mandatory option '-d'\n", myname );
         return usage( myname, FAILURE );
@@ -346,7 +310,7 @@ status_t get_options( options_t *options, int argc, char **argv )
     }
 
     if ( options->command->command == 'k'
-        && (options->ifile || options->ofile || options->flags.value || options->format ) )
+        && (options->ifile || options->ofile || options->data || options->format ) )
     {
         fprintf( stderr, "%s: Command '-b' does not accept any other option.\n", myname );
         return usage( myname, FAILURE );

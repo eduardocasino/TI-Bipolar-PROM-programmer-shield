@@ -30,7 +30,7 @@ On WSL, first make sure that you [attach the USB device to the Linux susbsystem]
 Usage: prom [-h]
        prom DEVICE [-c NUM] -b
        prom DEVICE [-c NUM] -r [ADDRESS | -o FILE [-f FORMAT]]
-       prom DEVICE [-c NUM] {-w|-s|-v} {ADDRESS -d BYTE | -i FILE [-f FORMAT]}
+       prom DEVICE [-c NUM] {-w|-s|-v} {ADDRESS -d STRING | -i FILE [-f FORMAT]}
 
 Arguments:
     DEVICE                  Serial device.
@@ -44,13 +44,15 @@ Options:
                             the screen or, if an output file name is provided,
                             dump the contents with the format specified by the
                             -format option.
-    -w[rite]    [ADDRESS]   Program chip. If ADDRESS is provided, program just
-                            that location with data specified with the -data
-                            option. If not, an input filename must be specified.
+    -w[rite]    [ADDRESS]   Program chip. If ADDRESS is provided, program
+                            beginning at that location with data specified with
+                            the -data option. If not, an input filename must be
+                            specified.
     -s[imulate] [ADDRESS]   Program simulation. Will success of fail as the write
                             command, but without actually burning the chip.
     -v[erify]   [ADDRESS]   Verify data. Same options as for -write|-simulate.
-    -d[ata]     BYTE        Byte to program, simulate or verify.
+    -d[ata]     STRING      Binary string to program, simulate or verify. Can
+                            contain hex and oct escaped binary chars.
     -i[nput]    FILE        File to read the data from.
     -o[utput]   FILE        File to save the data to.
     -f[ormat]   {bin,ihex}  File format. Defaults to bin.
@@ -139,15 +141,15 @@ $ cat test.hex
 
 ### Write and Simulate Write commands
 
-`prom DEVICE -w ADDRESS -d DATA` programs the cell at address `ADDRESS` with the `DATA` byte:
+`prom DEVICE -w ADDRESS -d DATA` programs the cells beginning at address `ADDRESS` with the `DATA` binary string:
 
 ```bash
-$ ./prom /dev/ttyUSB0 -w 0x60 -d 1
+$ ./prom /dev/ttyUSB0 -w 0x60 -d '\x01\x02'
 Connected to programmer, firmware V01.00.00.
 WARNING: Programming is irreversible. Are you sure? Type YES to confirm
 YES
 Writing
-.
+..
 Success.
 ```
 

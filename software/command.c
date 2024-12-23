@@ -36,6 +36,7 @@
 #include "serial.h"
 #include "hexdump.h"
 #include "files.h"
+#include "str.h"
 
 #define REC_BUF_SIZE    100
 #define RW_BUF_SIZE     4096
@@ -55,7 +56,7 @@ status_t command_blank(
     char *device,
     uint8_t chip,
     uint16_t address,
-    uint8_t data,
+    uint8_t *data,
     char *ifile,
     char *ofile,
     const format_st_t *format )
@@ -116,7 +117,7 @@ status_t command_read(
     char *device,
     uint8_t chip,
     uint16_t address,
-    uint8_t data,
+    uint8_t *data,
     char *ifile,
     char *ofile,
     const format_st_t *format )
@@ -215,7 +216,7 @@ static status_t command_execute(
     char *device,
     uint8_t chip,
     uint16_t address,
-    uint8_t data,
+    uint8_t *data,
     char *ifile,
     char *ofile,
     const format_st_t *format )
@@ -244,9 +245,11 @@ static status_t command_execute(
             perror( "Can't alloc memory for new hex block\n" );
             return FAILURE;
         }
-        rw_buf[address] = data;
+        if ( FAILURE == str_process( data, &rw_buf[address], sizeof( rw_buf ) - address, &blocks->count ) )
+        {
+            return FAILURE;
+        }
         blocks->start = address;
-        blocks->count = 1;
         blocks->next = NULL;
     }
 
@@ -346,7 +349,7 @@ status_t command_write(
     char *device,
     uint8_t chip,
     uint16_t address,
-    uint8_t data,
+    uint8_t *data,
     char *ifile,
     char *ofile,
     const format_st_t *format )
@@ -369,7 +372,7 @@ status_t command_simul(
     char *device,
     uint8_t chip,
     uint16_t address,
-    uint8_t data,
+    uint8_t *data,
     char *ifile,
     char *ofile,
     const format_st_t *format )
@@ -383,7 +386,7 @@ status_t command_verify(
     char *device,
     uint8_t chip,
     uint16_t address,
-    uint8_t data,
+    uint8_t *data,
     char *ifile,
     char *ofile,
     const format_st_t *format )
