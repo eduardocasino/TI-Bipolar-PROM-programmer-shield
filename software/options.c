@@ -78,32 +78,33 @@ static status_t usage( char *myname, status_t status )
 {
     fprintf( stderr, "\nUsage: %s [-h]", myname );
     fprintf( stderr, "\n       %s DEVICE [-c NUM] -b", myname );
-    fprintf( stderr, "\n       %s DEVICE [-c NUM] -r [ADDRESS | -o FILE [-f FORMAT]]", myname );
+    fprintf( stderr, "\n       %s DEVICE [-c NUM] -r [ADDRESS [-n COUNT]| -o FILE [-f FORMAT]]", myname );
     fprintf( stderr, "\n       %s DEVICE [-c NUM] {-w|-s|-v} {ADDRESS -d STRING | -i FILE [-f FORMAT]}\n\n", myname );
 
     fputs( "Arguments:\n", stderr );
-    fputs( "    DEVICE                  Serial device.\n\n", stderr );
+    fputs( "   DEVICE                   Serial device.\n\n", stderr );
 
     fputs( "Options:\n", stderr );
-    fputs( "    -h[elp]                 Show this help message and exit.\n", stderr );
-    fputs( "    -c[hip]     NUM         Chip to program: 0 == 74s471 (default), 1 == 74s472.\n", stderr );
-    fputs( "    -b[lank]                Do a whole chip blank test.\n", stderr );
-    fputs( "    -r[ead]     [ADDRESS]   Read chip. If ADDRESS is specified, read just that\n", stderr );
-    fputs( "                            byte. If not, do a hexdump of the chip contents to\n", stderr );
-    fputs( "                            the screen or, if an output file name is provided,\n", stderr );
-    fputs( "                            dump the contents with the format specified by the\n", stderr );
-    fputs( "                            -format option.\n", stderr );
-    fputs( "    -w[rite]    [ADDRESS]   Program chip. If ADDRESS is provided, program just\n", stderr );
-    fputs( "                            that location with data specified with the -data\n", stderr );
-    fputs( "                            option. If not, an input filename must be specified.\n", stderr );
-    fputs( "    -s[imulate] [ADDRESS]   Program simulation. Will success of fail as the write\n", stderr );
+    fputs( "   -h[elp]                  Show this help message and exit.\n", stderr );
+    fputs( "   -c[hip]      NUM         Chip to program: 0 == 74s471 (default), 1 == 74s472.\n", stderr );
+    fputs( "   -b[lank]                 Do a whole chip blank test.\n", stderr );
+    fputs( "   -r[ead]      [ADDRESS]   Read chip. If ADDRESS is specified, read the number\n", stderr );
+    fputs( "                            of bytes specified by -num-bytes starting at that address.\n", stderr );
+    fputs( "                            If not, do a hexdump of the chip contents to the screen\n", stderr );
+    fputs( "                            or, if an output file name is provided, dump the contents\n", stderr );
+    fputs( "                            with the format specified by the -format option.\n", stderr );
+    fputs( "   -n[um-bytes] [COUNT]     Number of bytes to read. Defaults to 1.\n", stderr );
+    fputs( "   -w[rite]     [ADDRESS]   Program chip. If ADDRESS is provided, program beginning\n", stderr );
+    fputs( "                            at that location with data specified with the -data option.\n", stderr );
+    fputs( "                            If not, an input filename must be specified.\n", stderr );
+    fputs( "   -s[imulate]  [ADDRESS]   Program simulation. Will success of fail as the write\n", stderr );
     fputs( "                            command, but without actually burning the chip.\n", stderr );
-    fputs( "    -v[erify]   [ADDRESS]   Verify data. Same options as for -write|-simulate.\n", stderr );
-    fputs( "    -d[ata]     STRING      Binary string to program, simulate or verify. can\n", stderr );
+    fputs( "   -v[erify]    [ADDRESS]   Verify data. Same options as for -write|-simulate.\n", stderr );
+    fputs( "   -d[ata]      STRING      Binary string to program, simulate or verify. can\n", stderr );
     fputs( "                            contain hex and oct escaped binary chars.\n", stderr );
-    fputs( "    -i[nput]    FILE        File to read the data from.\n", stderr );
-    fputs( "    -o[utput]   FILE        File to save the data to.\n", stderr );
-    fputs( "    -f[ormat]   {bin,ihex}  File format. Defaults to bin.\n\n", stderr );
+    fputs( "   -i[nput]     FILE        File to read the data from.\n", stderr );
+    fputs( "   -o[utput]    FILE        File to save the data to.\n", stderr );
+    fputs( "   -f[ormat]    {bin,ihex}  File format. Defaults to bin.\n\n", stderr );
 
     fputs( "Note: Long and short options, with single or dual '-' are supported\n\n", stderr );
 

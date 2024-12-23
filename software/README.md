@@ -29,33 +29,34 @@ On WSL, first make sure that you [attach the USB device to the Linux susbsystem]
 ```text
 Usage: prom [-h]
        prom DEVICE [-c NUM] -b
-       prom DEVICE [-c NUM] -r [ADDRESS | -o FILE [-f FORMAT]]
+       prom DEVICE [-c NUM] -r [ADDRESS [-n COUNT] | -o FILE [-f FORMAT]]
        prom DEVICE [-c NUM] {-w|-s|-v} {ADDRESS -d STRING | -i FILE [-f FORMAT]}
 
 Arguments:
-    DEVICE                  Serial device.
+   DEVICE                   Serial device.
 
 Options:
-    -h[elp]                 Show this help message and exit.
-    -c[hip]     NUM         Chip to program: 0 == 74s471 (default), 1 == 74s472.
-    -b[lank]                Do a whole chip blank test.
-    -r[ead]     [ADDRESS]   Read chip. If ADDRESS is specified, read just that
+   -h[elp]                  Show this help message and exit.
+   -c[hip]      NUM         Chip to program: 0 == 74s471 (default), 1 == 74s472.
+   -b[lank]                 Do a whole chip blank test.
+   -r[ead]      [ADDRESS]   Read chip. If ADDRESS is specified, read just that
                             byte. If not, do a hexdump of the chip contents to
                             the screen or, if an output file name is provided,
                             dump the contents with the format specified by the
                             -format option.
-    -w[rite]    [ADDRESS]   Program chip. If ADDRESS is provided, program
+   -n[um-bytes] [COUNT]     Number of bytes to read. Defaults to 1.
+   -w[rite]     [ADDRESS]   Program chip. If ADDRESS is provided, program
                             beginning at that location with data specified with
                             the -data option. If not, an input filename must be
                             specified.
-    -s[imulate] [ADDRESS]   Program simulation. Will success of fail as the write
+   -s[imulate]  [ADDRESS]   Program simulation. Will success of fail as the write
                             command, but without actually burning the chip.
-    -v[erify]   [ADDRESS]   Verify data. Same options as for -write|-simulate.
-    -d[ata]     STRING      Binary string to program, simulate or verify. Can
+   -v[erify]    [ADDRESS]   Verify data. Same options as for -write|-simulate.
+   -d[ata]      STRING      Binary string to program, simulate or verify. Can
                             contain hex and oct escaped binary chars.
-    -i[nput]    FILE        File to read the data from.
-    -o[utput]   FILE        File to save the data to.
-    -f[ormat]   {bin,ihex}  File format. Defaults to bin.
+   -i[nput]     FILE        File to read the data from.
+   -o[utput]    FILE        File to save the data to.
+   -f[ormat]    {bin,ihex}  File format. Defaults to bin.
 
 Note: Long and short options, with single or dual '-' are supported
 ```
