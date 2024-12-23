@@ -44,7 +44,8 @@ Options:
                             the screen or, if an output file name is provided,
                             dump the contents with the format specified by the
                             -format option.
-   -n[um-bytes] [COUNT]     Number of bytes to read. Defaults to 1.
+   -n[um-bytes] [COUNT]     Number of bytes to read. Defaults to the whole chip
+                            size.
    -w[rite]     [ADDRESS]   Program chip. If ADDRESS is provided, program
                             beginning at that location with data specified with
                             the -data option. If not, an input filename must be
@@ -99,12 +100,13 @@ Connected to programmer, firmware V01.00.00.
 100
 ```
 
-If an address is provided, the content of that cell is printed to the screen:
+If an address is provided, the content from that cell and onwards is printed to the screen:
 
 ```bash
 $ ./prom /dev/ttyUSB0 -r 0xec
 Connected to programmer, firmware V01.00.00.
-0EC  ff                                                |.               |
+0EC  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff 1c 1c  |................|
+0FC  00 ff 1f 1c                                       |....            |
 ```
 
 Finally, it is also possible to make a dump in binary or Intel HEX format with the `-o FILE` and `-f {bin|ihex}` options, If not specified, `bin` is the default:

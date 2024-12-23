@@ -133,16 +133,15 @@ status_t command_read(
     uint8_t ret_stat;
     size_t received = 0;
 
-    if ( count == 0xFFFF )
-    {
-        count = chip_sizes[chip];
-    }
-
     if ( address == 0xFFFF )
     {
         address = 0;
     }
 
+    if ( count == 0xFFFF )
+    {
+        count = chip_sizes[chip]-address;
+    }
     if ( address >= chip_sizes[chip] )
     {
         fprintf( stderr, "Error: Invalid start address: 0x%X\n", address );

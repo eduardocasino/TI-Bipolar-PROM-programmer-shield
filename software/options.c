@@ -93,7 +93,7 @@ static status_t usage( char *myname, status_t status )
     fputs( "                            If not, do a hexdump of the chip contents to the screen\n", stderr );
     fputs( "                            or, if an output file name is provided, dump the contents\n", stderr );
     fputs( "                            with the format specified by the -format option.\n", stderr );
-    fputs( "   -n[um-bytes] [COUNT]     Number of bytes to read. Defaults to 1.\n", stderr );
+    fputs( "   -n[um-bytes] [COUNT]     Number of bytes to read. Defaults to the whole chip size.\n", stderr );
     fputs( "   -w[rite]     [ADDRESS]   Program chip. If ADDRESS is provided, program beginning\n", stderr );
     fputs( "                            at that location with data specified with the -data option.\n", stderr );
     fputs( "                            If not, an input filename must be specified.\n", stderr );
