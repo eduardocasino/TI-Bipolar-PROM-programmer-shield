@@ -68,6 +68,7 @@ int main( int argc, char **argv )
                                         options.device,
                                         options.chip,
                                         options.flags.address ? options.address : 0xFFFF,
+                                        options.flags.count ? options.count : 0xFFFF,
                                         options.data,
                                         options.ifile,
                                         options.ofile,

@@ -122,18 +122,19 @@ status_t get_options( options_t *options, int argc, char **argv )
     char *myname = basename( argv[0] );
 
     static const struct option long_opts[] = {
-        {"help",     no_argument,       0, 'h' },
-        {"chip",     required_argument, 0, 'c' },
-        {"blank",    no_argument,       0, 'k' },
-        {"read",     optional_argument, 0, 'r' },
-        {"write",    optional_argument, 0, 'w' },
-        {"simulate", optional_argument, 0, 's' },
-        {"verify",   optional_argument, 0, 'v' },
-        {"data",     required_argument, 0, 'd' },
-        {"input",    required_argument, 0, 'i' },
-        {"output",   required_argument, 0, 'o' },
-        {"format",   required_argument, 0, 'f' },
-        {0,          0,                 0,  0  }
+        {"help",      no_argument,       0, 'h' },
+        {"chip",      required_argument, 0, 'c' },
+        {"blank",     no_argument,       0, 'k' },
+        {"read",      optional_argument, 0, 'r' },
+        {"write",     optional_argument, 0, 'w' },
+        {"simulate",  optional_argument, 0, 's' },
+        {"verify",    optional_argument, 0, 'v' },
+        {"data",      required_argument, 0, 'd' },
+        {"input",     required_argument, 0, 'i' },
+        {"output",    required_argument, 0, 'o' },
+        {"format",    required_argument, 0, 'f' },
+        {"num-bytes", required_argument, 0, 'n' },
+        {0,           0,                 0,  0  }
     };
 
     memset( options, 0, sizeof( options_t ) );
@@ -256,6 +257,19 @@ status_t get_options( options_t *options, int argc, char **argv )
                 }
                 break;
 
+            case 'n':
+                if ( options->flags.count++ )
+                {
+                    return duplicate( myname, opt );
+                }
+
+                if ( EINVAL == get_uint16( optarg, &options->count ) )
+                {
+                    fprintf( stderr, "Error: Invalid value: %s\n", optarg );
+                    return usage( myname, FAILURE );
+                } 
+
+                break;
             case ':':
                 fprintf( stderr, "%s: Option requires an argument: -- '%s'\n", myname, argv[optind-1] );
                 // FALLTHROUGH
@@ -300,12 +314,19 @@ status_t get_options( options_t *options, int argc, char **argv )
         return usage( myname, FAILURE );
     } 
 
-    if ( (options->command->command == 'r' && options->ifile )
+    if ( ( options->command->command == 'r' && options->ifile )
         || (options->command->command != 'r' && options->ofile ) )
     {
         fprintf( stderr, "%s: Incompatible options: '-%c' and '-%c'.\n", myname,
                 options->command->command,
                 (options->command->command == 'r') ? 'i' : 'o' );
+        return usage( myname, FAILURE );
+    }
+
+    if ( (options->command->command != 'r' && options->flags.count ) )
+    {
+        fprintf( stderr, "%s: Incompatible options: '-%c' and '-n'.\n", myname,
+                options->command->command );
         return usage( myname, FAILURE );
     }
 
@@ -318,7 +339,7 @@ status_t get_options( options_t *options, int argc, char **argv )
 
     if ( options->flags.address && ( options->ifile || options->ofile ) )
     {
-        fprintf( stderr, "%s: Mutually exclusive options: '-d' and '-%c'.\n", myname, options->ifile ? 'i' : 'o' );
+        fprintf( stderr, "%s: Option '-%c' is only valid for reading/writing the whole chip.\n", myname, options->ifile ? 'i' : 'o' );
         return usage( myname, FAILURE );
     }
 

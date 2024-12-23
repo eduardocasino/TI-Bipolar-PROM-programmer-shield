@@ -109,7 +109,7 @@ typedef struct {
   byte command;
   chip_type_t chip;               // Chip to program
   word address;                   // Address to read from / write to. Doubles as test parameters for the test command
-  byte value;                     // Value to write / verify. Doubles as test number for the test command
+  word value;                     // Value to write / verify. Doubles as read count for read command and test number for the test command
 } cmd_data_t;
 
 typedef state_t (*state_fn_t)( cmd_data_t *cmd_data, state_t state, state_t next );
@@ -130,7 +130,6 @@ state_t get_value( cmd_data_t *cmd_data, state_t unused, state_t next );
 
 state_t exec_read_prom( cmd_data_t *cmd_data, state_t unused1, state_t unused2 );
 state_t exec_blank_check( cmd_data_t *cmd_data, state_t unused1, state_t unused2 );
-state_t exec_read_prom_byte( cmd_data_t *cmd_data, state_t unused1, state_t unused2 );
 state_t exec_write_prom_byte( cmd_data_t *cmd_data, state_t unused1, state_t unused2 );
 state_t exec_simul_write_prom_byte( cmd_data_t *cmd_data, state_t unused1, state_t unused2 );
 state_t exec_test( cmd_data_t *cmd_data, state_t unused1, state_t unused2 );
@@ -140,13 +139,12 @@ const st_machine_t machine[] = {
 
   { '*', ST_READY, get_command, ST_WAIT_CHIP },
   { 'V', ST_ANY, print_version, ST_READY },
-  { 'R', ST_WAIT_CHIP, get_chip, ST_EXEC },
-  { 'R', ST_EXEC, exec_read_prom, ST_READY },
   { 'K', ST_WAIT_CHIP, get_chip, ST_EXEC },
   { 'K', ST_EXEC, exec_blank_check, ST_READY },
   { 'r', ST_WAIT_CHIP, get_chip, ST_WAIT_ADDR },
-  { 'r', ST_WAIT_ADDR, get_address, ST_EXEC },
-  { 'r', ST_EXEC, exec_read_prom_byte, ST_READY },
+  { 'r', ST_WAIT_ADDR, get_address, ST_WAIT_VALUE },
+  { 'r', ST_WAIT_VALUE, get_value, ST_EXEC },
+  { 'r', ST_EXEC, exec_read_prom, ST_READY },
   { 'w', ST_WAIT_CHIP, get_chip, ST_WAIT_ADDR },
   { 'w', ST_WAIT_ADDR, get_address, ST_WAIT_VALUE },
   { 'w', ST_WAIT_VALUE, get_value, ST_EXEC },
@@ -375,12 +373,12 @@ state_t get_value( cmd_data_t *cmd_data, state_t unused, state_t next )
 {
   long int value = get_hex();
 
-  if (value < 0 || value > 0xFF )
+  if (value < 0 || value > chip_sizes[cmd_data->chip] )
   {
     return set_st_error();
   }
 
-  cmd_data->value = (byte) value;
+  cmd_data->value = (word) value;
 
   return next; 
 }
@@ -596,27 +594,14 @@ state_t exec_simul_write_prom_byte( cmd_data_t *cmd_data, state_t unused1, state
   return write_prom_byte( cmd_data, false );
 }
 
-state_t exec_read_prom_byte( cmd_data_t *cmd_data, state_t unused1, state_t unused2 )
-{
-  power_on();
-
-  byte data = read_prom_byte( cmd_data->chip, cmd_data->address ); 
-    
-  Serial.println( data, HEX );
-  
-  return set_st_ready();
-}
-
 state_t exec_read_prom( cmd_data_t *cmd_data, state_t unused1, state_t unused2 )
 {
   unsigned int address;
   byte data;
 
-  Serial.println( chip_sizes[cmd_data->chip], HEX );
-
   power_on();
 
-  for ( address = 0; address < chip_sizes[cmd_data->chip]; ++address )
+  for ( address = cmd_data->address; address < cmd_data->address+cmd_data->value; ++address )
   {
     data = read_prom_byte( cmd_data->chip, address ); 
     Serial.print( data < 16 ? "0" : "");

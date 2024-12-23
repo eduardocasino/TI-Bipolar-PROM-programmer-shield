@@ -46,7 +46,7 @@ binfile.o: globals.h files.h
 
 ihex.o: globals.h files.h scan.h
 
-command.o: globals.h files.h hexdump.h serial.h
+command.o: globals.h files.h hexdump.h serial.h scan.h str.h
 
 files.o: globals.h files.h
 

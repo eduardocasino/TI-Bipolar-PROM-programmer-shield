@@ -33,13 +33,13 @@
 #include "options.h"
 #include "files.h"
 
-typedef status_t (*cmd_fn_t)( int fd, char *device, uint8_t chip, uint16_t address, uint8_t *data, char *ifile, char *ofile, const format_st_t *format );
+typedef status_t (*cmd_fn_t)( int fd, char *device, uint8_t chip, uint16_t address, uint16_t count, uint8_t *data, char *ifile, char *ofile, const format_st_t *format );
 
 status_t command_init( int fd, char *device );
-status_t command_blank( int fd, char *device, uint8_t chip, uint16_t address, uint8_t *data, char *ifile, char *ofile, const format_st_t *format );
-status_t command_read( int fd, char *device, uint8_t chip, uint16_t address, uint8_t *data, char *ifile, char *ofile, const format_st_t *format );
-status_t command_write( int fd, char *device, uint8_t chip, uint16_t address, uint8_t *data, char *ifile, char *ofile, const format_st_t *format );
-status_t command_simul( int fd, char *device, uint8_t chip, uint16_t address, uint8_t *data, char *ifile, char *ofile, const format_st_t *format );
-status_t command_verify( int fd, char *device, uint8_t chip, uint16_t address, uint8_t *data, char *ifile, char *ofile, const format_st_t *format );
+status_t command_blank( int fd, char *device, uint8_t chip, uint16_t address, uint16_t count, uint8_t *data, char *ifile, char *ofile, const format_st_t *format );
+status_t command_read( int fd, char *device, uint8_t chip, uint16_t address, uint16_t count, uint8_t *data, char *ifile, char *ofile, const format_st_t *format );
+status_t command_write( int fd, char *device, uint8_t chip, uint16_t address, uint16_t count, uint8_t *data, char *ifile, char *ofile, const format_st_t *format );
+status_t command_simul( int fd, char *device, uint8_t chip, uint16_t address, uint16_t count, uint8_t *data, char *ifile, char *ofile, const format_st_t *format );
+status_t command_verify( int fd, char *device, uint8_t chip, uint16_t address, uint16_t count, uint8_t *data, char *ifile, char *ofile, const format_st_t *format );
 
 #endif /* COMMAND_H */

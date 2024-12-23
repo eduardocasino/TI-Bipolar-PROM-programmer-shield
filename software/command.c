@@ -31,14 +31,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "globals.h"
 #include "serial.h"
 #include "hexdump.h"
 #include "files.h"
 #include "str.h"
+#include "scan.h"
 
-#define REC_BUF_SIZE    100
+#define REC_BUF_SIZE    4096
 #define RW_BUF_SIZE     4096
 
 typedef void (*cmdset_fn_t)( char command, char *cmd_buf, uint8_t chip, uint16_t address, uint8_t *data );
@@ -55,11 +57,13 @@ status_t command_blank(
     int fd,
     char *device,
     uint8_t chip,
-    uint16_t address,
-    uint8_t *data,
-    char *ifile,
-    char *ofile,
-    const format_st_t *format )
+    uint16_t address,           // Unused
+    uint16_t count,             // Unused
+    uint8_t *data,              // Unused
+    char *ifile,                // Unused
+    char *ofile,                // Unused
+    const format_st_t *format   // Unused
+    ) 
 {
     int n, tries;
     ssize_t returned;
@@ -117,90 +121,104 @@ status_t command_read(
     char *device,
     uint8_t chip,
     uint16_t address,
-    uint8_t *data,
-    char *ifile,
+    uint16_t count,
+    uint8_t *data,              // Unused
+    char *ifile,                // Unused
     char *ofile,
-    const format_st_t *format )
+    const format_st_t *format
+    )
 {
     int n, tries;
     ssize_t returned;
     uint8_t ret_stat;
-    size_t start, end;
+    size_t received = 0;
 
-    fputs( "Reading\n", stderr );
-    if ( address != 0xFFFF )
+    if ( count == 0xFFFF )
     {
-        start = address;
-        end = address+1;
-    }
-    else
-    {
-        start = 0;
-        end = chip_sizes[chip];
+        count = chip_sizes[chip];
     }
 
-    for ( size_t i = start; i < end; ++i )
+    if ( address == 0xFFFF )
     {
-        putc( '.', stderr );
-        sprintf( rec_buf, "r %x %x\n", chip, (uint16_t) i );
+        address = 0;
+    }
 
-        if ( FAILURE == serial_write( fd, device, rec_buf, strlen( rec_buf ) ) )
-        {
-            return FAILURE;            
-        }
+    if ( address >= chip_sizes[chip] )
+    {
+        fprintf( stderr, "Error: Invalid start address: 0x%X\n", address );
+        return FAILURE;
+    }
+
+    if ( address+count > chip_sizes[chip] )
+    {
+        fprintf( stderr, "Error: Invalid start+count address: 0x%X\n", address+count );
+        return FAILURE;
+    }
+
+    sprintf( rec_buf, "r %x %x %x\n", chip, address, count );
+
+    if ( FAILURE == serial_write( fd, device, rec_buf, strlen( rec_buf ) ) )
+    {
+        return FAILURE;            
+    }
         
-        for ( tries = 0; tries < 5; ++tries )
+    for ( tries = 0; tries < 1000; ++tries )
+    {
+        if ( FAILURE == serial_read( fd, device, &rec_buf[received],
+                sizeof( rec_buf ) - address - received, &returned ) )
         {
-            if ( FAILURE == serial_read( fd, device, rec_buf, sizeof( rec_buf ), &returned ) )
-            {
-                return FAILURE;
-            }
-
-            if ( returned != 0 )
-            {
-                break;
-            }
-        }
-
-        if ( returned == 0 )
-        {
-            fprintf( stderr, "\nError: No response from programmer at port %s.\n", device );
             return FAILURE;
         }
 
-        if ( 2 != sscanf( rec_buf, "%hhx\r\n%c\r\n", &rw_buf[i], &ret_stat ) || ret_stat != 'R' )
+        received += returned;
+
+        // Expected 2 digits per byte, plus '\r\n', plus 'R', plus '\r\n' 
+        if ( received == (count*2) + 5 )
+        {
+            break;
+        }
+    }
+
+    if ( tries == 1000 )
+    {
+        fprintf( stderr, "\nError: No response from programmer at port %s.\n", device );
+        return FAILURE;
+    }
+
+    if ( 1 != sscanf( &rec_buf[count*2], "\r\n%c\r\n", &ret_stat ) || ret_stat != 'R' )
+    {
+        fputs( "\nError reading from prom. Bad programmer response.\n", stderr );
+        return FAILURE;
+    }
+
+    for ( int i = 0; i < count; ++i )
+    {
+        if ( EINVAL == get_hexbyte( &rec_buf[i*2], &rw_buf[address+i] ) )
         {
             fputs( "\nError reading from prom. Bad programmer response.\n", stderr );
             return FAILURE;
         }
-
-        if ( ! ((i+1) % 73) )
-        {
-            fputs( "\n", stderr );
-        } 
     }
-
-    fputs( "\n", stderr );
-    fputs( "Success.\n", stderr );
 
     if ( ofile )
     {
         status_t status;
+        fprintf( stderr, "Writing contents to file `%s` in %s format.\n", ofile, format->format_string );
 
-        status = format->write_fn( ofile, rw_buf, chip_sizes[chip], start );
+        status = format->write_fn( ofile, rw_buf, chip_sizes[chip], address );
 
         return status;
     }
     else
     {
-        hexdump( &rw_buf[start], end-start, start );
+        hexdump( &rw_buf[address], count, address );
         return SUCCESS;
     }
 }
 
 static void command_set_read( char command, char *cmd_buf, uint8_t chip, uint16_t address, uint8_t *unused )
 {
-    sprintf( cmd_buf, "%c %x %x\n", command, chip, address );
+    sprintf( cmd_buf, "%c %x %x 1\n", command, chip, address );
 }
 
 static void command_set_write( char command, char *cmd_buf, uint8_t chip, uint16_t address, uint8_t *data )
@@ -268,6 +286,7 @@ static status_t command_execute(
             }
 
             putc( '.', stderr );
+            
             command_fn( command, rec_buf, chip, loc, &rw_buf[loc] );
 
             if ( FAILURE == serial_write( fd, device, rec_buf, strlen( rec_buf ) ) )
@@ -349,10 +368,12 @@ status_t command_write(
     char *device,
     uint8_t chip,
     uint16_t address,
+    uint16_t count,             // Unused
     uint8_t *data,
     char *ifile,
-    char *ofile,
-    const format_st_t *format )
+    char *ofile,                // Unused
+    const format_st_t *format
+    )
 {
     fputs( "WARNING: Programming is irreversible. Are you sure? Type YES to confirm\n", stderr );
     if ( NULL != fgets( rw_buf, sizeof( rw_buf ), stdin ) )
@@ -372,10 +393,12 @@ status_t command_simul(
     char *device,
     uint8_t chip,
     uint16_t address,
+    uint16_t count,             // Unused
     uint8_t *data,
     char *ifile,
-    char *ofile,
-    const format_st_t *format )
+    char *ofile,                // Unused
+    const format_st_t *format
+    )
 {
     fputs( "Performing a write simulation\n", stderr );
     return command_execute( 's', command_set_write, "writing (simulated) to", fd, device, chip, address, data, ifile, ofile, format );
@@ -386,10 +409,12 @@ status_t command_verify(
     char *device,
     uint8_t chip,
     uint16_t address,
+    uint16_t count,             // Unused
     uint8_t *data,
     char *ifile,
-    char *ofile,
-    const format_st_t *format )
+    char *ofile,                // Unused
+    const format_st_t *format
+    )
 {
     fputs( "Verifying\n", stderr );
     return command_execute( 'r', command_set_read, "verifying", fd, device, chip, address, data, ifile, ofile, format );
